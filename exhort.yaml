@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: exhort
+  labels:
+    app: exhort
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: exhort
+  template:
+    metadata:
+      labels:
+        app: exhort
+    spec:
+      containers:
+      - name: exhort
+        image: quay.io/ecosystem-appeng/exhort:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        - name: management
+          containerPort: 9000
+          protocol: TCP
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        env:
+        - name: API_SNYK_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: exhort-secret
+              key: api-snyk-token
+        - name: API_OSSINDEX_DISABLED
+          value: "true"
+        - name: MONITORING_ENABLED
+          value: "true"
+        - name: MONITORING_SENTRY_DSN
+          valueFrom:
+            secretKeyRef:
+              name: exhort-secret
+              key: sentry-dsn
+        - name: MONITORING_SENTRY_SERVERNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: MONITORING_SENTRY_ENVIRONMENT
+          value: development
+        - name: TELEMETRY_WRITE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: exhort-secret
+              key: telemetry-write-key
+        livenessProbe:
+          httpGet:
+            path: /q/health/live
+            port: 9000
+          initialDelaySeconds: 1
+        readinessProbe:
+          httpGet:
+            path: /q/health/ready
+            port: 9000
+          initialDelaySeconds: 5
+          periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: exhort
+  labels:
+    app: exhort
+spec:
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  - name: management
+    port: 9000
+    protocol: TCP
+    targetPort: 9000
+  selector:
+    app: exhort
