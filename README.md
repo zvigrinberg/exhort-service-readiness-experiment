@@ -463,7 +463,7 @@ Response Output:
   }
 }
 ```
-14. To tear up and clean up resource , Delete Project
+14. To tear down and clean up resources , Delete Project
 ```shell
 oc delete project exhort-test
 ```
@@ -905,7 +905,7 @@ Actual Output ( it will give you both of the payloads alternately):
 ```
 _Note: the "fault injected" response is from the pod which we manipulated its application container' network namespace using iptables firewall ( from the debugged node pod), and the successful real response it's from the second pod, which has access to snyk address as we dind't sabotaged its container' linux network namespace as we did with the first pod._
 
-15. To tear up and clean up resource , Delete Project
+15. To tear down and clean up resources , Delete Project
 ```shell
 oc delete project exhort-test
 ```
