@@ -468,7 +468,7 @@ Response Output:
 oc delete project exhort-test
 ```
 
-### Simulating By Blocking External access from 1 pod to real snyk address
+### Simulating By Blocking External access from 1 pod to real snyk address using firewall
 
 1. we will create a new project exhort-test
 2. we will create the exhort secret from the exhort namespace
@@ -509,7 +509,7 @@ export NETWORK_NS=$(crictl inspect $CONTAINER_ID | jq .info.runtimeSpec.linux.na
 export SNYK_IP=$(dig +short api.snyk.io)
 ```
 
-11. Now block external access to snyk api IP in the container network namespace, to make snyk api site not available for pod
+11. Now block external access to snyk api IP in the container network namespace, to make snyk api site not available for pod, we will use iptables firewall directly on the linux network namespace of the application container inside the pod:
 ```shell
 ip netns exec $NETWORK_NS iptables -A OUTPUT -p tcp -d $SNYK_IP  -j DROP
 ```
@@ -523,7 +523,7 @@ ip netns exec $NETWORK_NS iptables -A OUTPUT -p tcp -d $SNYK_IP  -j DROP
 oc cp sbom-example.json rest-api-client:/tmp/sbom.json
 ```
 
-14. Now invoke A Couple of times the exhort analysis endpoint, it will give you alternately a valid response and an erroneous response from the pod that we manipulated its container' network namespace using iptables firewall
+14. Now invoke A Couple of times the exhort analysis service endpoint, it will give you alternately a valid response and an erroneous response from the upstream pods:
 ```shell
 curl -i -X POST http://exhort:8080/api/v4/analysis -H 'Content-Type:application/vnd.cyclonedx+json' -H 'Accept:application/json' -d  @/tmp/sbom.json
 ```
@@ -903,6 +903,8 @@ Actual Output ( it will give you both of the payloads alternately):
   }
 }
 ```
+_Note: the "fault injected" response is from the pod which we manipulated its application container' network namespace using iptables firewall ( from the debugged node pod), and the successful real response it's from the second pod, which has access to snyk address as we dind't sabotaged its container' linux network namespace as we did with the first pod._
+
 15. To tear up and clean up resource , Delete Project
 ```shell
 oc delete project exhort-test
