@@ -6,9 +6,9 @@ has bad connectivity to the internet ( due to networking issues on the node that
 account the status of all providers of exhort, the service will forward traffic to all pods, including ones that has internet problems.
 
 ## How to Simulate a faulty pod/node
-Since exhort image is very minimal, without network tools, we won't tweak the network interfaces of the application container inside the pod, in order to simulate broken internet connectivity.
+Since exhort image is very minimal, without network tools, and without package manager to install such tools ( for security and pull image performance reasons) , we won't manipulate the network interfaces of the application container inside the pod, in order to simulate broken internet connectivity.
 it's also quite complicated, as in such case you need to cherry-pick the right network interface, and disable/turn it off,  but you need to make sure that this network interface is the one that bridge the pod' container to the default/internet gateway address, and not network interface responsible for internal pod to pod and service to pod networking.
-Instead of this ( as not possible with exhort image and quite complicated and not worthawhile even if it was possible), we will use a different a approach, describe in the following section.
+Instead of this ( as not possible with exhort image and quite complicated and not worthawhile even if it was possible), we will use a different a approach, described in the following section.
 
 ## Procedure - 2 Ways to Simulate a pod failure
 
