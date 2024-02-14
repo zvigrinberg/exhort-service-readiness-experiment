@@ -1,8 +1,8 @@
 # exhort-service-readiness-experiment
 
 ## Goal 
-To show that in case [exhort] deployment is deployed with more than 1 replica, then it's possible that one of the pods
-has bad connectivity to the internet ( due to networking issues on the node that it's deployed on), and in such case, without fine grained readiness check, that takes into
+To show that in case [exhort](https://github.com/RHEcosystemAppEng/exhort) deployment is deployed with more than 1 replica, then it's possible that one of the pods
+has bad connectivity to the internet ( due to networking issues on the node that it's deployed on), and in such case, without fine-grained readiness check, that takes into
 account the status of all providers of exhort, the service will forward traffic to all pods, including ones that has internet problems.
 
 ## How to Simulate a faulty pod/node
@@ -27,7 +27,7 @@ oc apply -f exhort.yaml
 ```shell
 oc debug pod/exhort-pod-name -o yaml > pod-debug.yaml
 ```
-6. in pod-debug.yaml file, we'll remove containers[0].command entrypoint override , and will add to the pod definiton the following label:
+6. In pod-debug.yaml file, we'll remove containers[0]. Command entrypoint override , and will add to the pod definiton the following label:
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -62,7 +62,7 @@ spec:
 ```shell
 oc apply -f pod-debug.yaml
 ```   
-9. The service should add now this pod IP as an endpoint that it loadbalance traffic to, verify it
+9. The service should add now this pod IP as an endpoint that it load-balance traffic to, verify it
 ```shell
 oc get pod -o wide
 oc describe endpoints
@@ -122,7 +122,7 @@ Content-Type: application/json
 }
 ```
 13. Tried 2 more times and got same response as above - 404 from snyk , fourth time gave
-Response Output    
+Response Output:
 ```json
 {
   "scanned" : {
@@ -487,7 +487,7 @@ export NODE_NAME=$(oc get pods -l app=exhort | grep -m 1 exhort- | awk ' {print 
 6. and debug the node:
 ```shell
 oc debug node/$NODE_NAME
-## In debug pod, enter the folloing
+## In debug pod, enter the following
 chroot /host
 ```
 7. Now inside the debug pod, get the pod name from container runtime
@@ -523,7 +523,7 @@ ip netns exec $NETWORK_NS iptables -A OUTPUT -p tcp -d $SNYK_IP  -j DROP
 oc cp sbom-example.json rest-api-client:/tmp/sbom.json
 ```
 
-14. Now invoke Couple of times the exhort analysis endpoint, it will give you alternately a valid response and an erroneous response from the pod that we manipulated its container' network namespace using iptables firewall
+14. Now invoke A Couple of times the exhort analysis endpoint, it will give you alternately a valid response and an erroneous response from the pod that we manipulated its container' network namespace using iptables firewall
 ```shell
 curl -i -X POST http://exhort:8080/api/v4/analysis -H 'Content-Type:application/vnd.cyclonedx+json' -H 'Accept:application/json' -d  @/tmp/sbom.json
 ```
@@ -561,9 +561,8 @@ Actual Output ( it will give you both of the payloads alternately):
       }
     }
   }
-
 ```
-```json
+
 ```json
 {
   "scanned" : {
@@ -904,4 +903,7 @@ Actual Output ( it will give you both of the payloads alternately):
   }
 }
 ```
-
+15. To tear up and clean up resource , Delete Project
+```shell
+oc delete project exhort-test
+```
