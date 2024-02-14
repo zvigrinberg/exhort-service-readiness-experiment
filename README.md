@@ -480,7 +480,7 @@ oc delete project exhort-test
 oc apply -f exhort.yaml
 ```
 4. We created also a service pointing to the deployment' pods in the above yaml file
-5. Now get node name of one of the pods (doesn't mother which on of the 2)
+5. Now get node name of one of the pods (doesn't matter which on of the 2)
 ```shell
 export NODE_NAME=$(oc get pods -l app=exhort | grep -m 1 exhort- | awk ' {print $1}' | xargs -i oc get pod {} -o=jsonpath='{..nodeName}')
 ```
