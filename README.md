@@ -1004,12 +1004,10 @@ export NODE_NAME=$(oc get pods -l app=exhort-healthier | grep -m 1 exhort- | awk
 18. and debug the node:
 ```shell
 oc debug node/$NODE_NAME
-## In debug pod, enter the following
-chroot /host
-
+```
 19. Now inside the debug pod of node, get the pod name from container runtime
 ```shell
-export POD_ID=$(crictl pods | grep -m 1 -i -E 'exhort-healthier[0-9a-f]' | awk '{print $1}')
+export POD_ID=$(crictl pods | grep -m 1 -i -E 'exhort-healthier-[0-9a-f]' | awk '{print $1}')
 ```
 20. Now get the application container id inside the pod
 ```shell
