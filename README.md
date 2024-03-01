@@ -992,6 +992,75 @@ public class ExternalServiceReadinessProbe implements HealthCheck {
     }
 }
 ```
+
+**_Or using Camel routes to leverage exhort existing camel routes:_**
+
+```java
+public class ProviderHealthCheck extends AbstractHealthCheck {
+
+  private static final List<String> allProvidersHealthChecks =
+      List.of("direct:snykHealthCheck", "direct:osvNvdHealthCheck", "direct:ossIndexHealthCheck");
+
+  public ProviderHealthCheck() {
+    super("External Providers Readiness Check");
+  }
+
+  @Override
+  protected void doCall(HealthCheckResultBuilder builder, Map<String, Object> options) {
+    var response =
+        getCamelContext()
+            .createProducerTemplate()
+            .send(
+                "direct:exhortHealthCheck",
+                ExchangeBuilder.anExchange(getCamelContext())
+                    .withHeader(
+                        Constants.HEALTH_CHECKS_LIST_HEADER_NAME, this.allProvidersHealthChecks)
+                    .build());
+
+    List<Map<String, ProviderStatus>> httpResponseBodiesAndStatuses =
+        (List<Map<String, ProviderStatus>>) response.getMessage().getBody();
+    Map<String, Object> providers =
+        httpResponseBodiesAndStatuses.stream()
+            .map(Map::entrySet)
+            .flatMap(Collection::stream)
+            .collect(
+                Collectors.toMap(
+                    entry -> entry.getKey(), entry -> formatProviderStatus(entry), (a, b) -> a));
+    builder.details(providers);
+
+    if (httpResponseBodiesAndStatuses.stream()
+        .map(Map::values)
+        .flatMap(Collection::stream)
+        .filter(providerStatus -> Objects.nonNull(providerStatus.getCode()))
+        .anyMatch(providerDetails -> providerDetails.getCode() < 400 && providerDetails.getOk())) {
+      builder.up();
+
+    } else {
+      builder.down();
+    }
+  }
+
+  private static String formatProviderStatus(Map.Entry<String, ProviderStatus> entry) {
+    ProviderStatus provider = entry.getValue();
+    if (Objects.nonNull(provider.getCode())) {
+      return String.format(
+          "providerName=%s, isEnabled=%s, statusCode=%s, message=%s",
+          provider.getName(), provider.getOk(), provider.getCode(), provider.getMessage());
+    } else {
+      return String.format(
+          "providerName=%s, isEnabled=%s, message=%s",
+          provider.getName(), provider.getOk(), provider.getMessage());
+    }
+  }
+
+  @Override
+  public boolean isLiveness() {
+    return false;
+  }
+}
+```
+
+
 15. Now we will Built exhort with this new readiness probe as a native executable, and built an image
 16. Deploy exhort-healthier deployment +  its exhort-healthier service to same namespace/project
 ```shell
