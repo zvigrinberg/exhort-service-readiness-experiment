@@ -1058,6 +1058,21 @@ public class ProviderHealthCheck extends AbstractHealthCheck {
     return false;
   }
 }
+@ApplicationScoped
+public class ExhortIntegration extends EndpointRouteBuilder {
+@Override
+  public void configure() {
+//.............
+//.............
+      from(direct("exhortHealthCheck"))
+	.routeId("exhortHealthCheck")
+	.setProperty(PROVIDERS_PARAM, method(vulnerabilityProvider, "getEnabled"))
+	.recipientList(header(Constants.HEALTH_CHECKS_LIST_HEADER_NAME))
+	 .aggregationStrategy(new ProvidersBodyPlusResponseCodeAggregationStrategy());
+  }
+}
+
+
 ```
 
 
