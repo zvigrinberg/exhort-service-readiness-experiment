@@ -509,7 +509,7 @@ export NETWORK_NS=$(crictl inspect $CONTAINER_ID | jq .info.runtimeSpec.linux.na
 export SNYK_IP=$(dig +short api.snyk.io)
 ```
 
-11. Now block external access to snyk api IP in the container network namespace, to make snyk api site not available for pod, we will use iptables firewall directly on the linux network namespace of the application container inside the pod:
+11. Now block external access to snyk api IP in the container network namespace, to make snyk api site not available for pod, we will use iproute2' ip utility together with iptables firewall directly on the linux network namespace of the application container inside the pod:
 ```shell
 ip netns exec $NETWORK_NS iptables -A OUTPUT -p tcp -d $SNYK_IP  -j DROP
 ```
